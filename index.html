@@ -154,6 +154,14 @@ body.light .exrow2 input{background:#fff}
 .livebar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .livebtn{background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;font-size:13px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer}
 .livebtn.loading{opacity:.6}
+.hcol{font-weight:800;font-size:13px;margin-bottom:6px}
+.mlbl{font-size:11px;color:var(--mut);margin:8px 0 2px;font-weight:700}
+.mbars{display:flex;gap:5px;align-items:flex-end;height:58px;margin:2px 0}
+.mbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.mbar .bv{font-size:10px;font-weight:700;margin-bottom:2px;white-space:nowrap;line-height:1}
+.mbar .bb{width:64%;border-radius:2px 2px 0 0;min-height:2px}
+.mdates{display:flex;gap:5px;margin-top:2px}
+.mdates span{flex:1;text-align:center;font-size:10px;color:var(--mut)}
 /* 淺色版 1：雲白 */
 body.light{--bg:#eef2f8;--card:#fff;--card2:#f3f6fb;--line:#dbe3ef;--txt:#1d2735;--mut:#69748a;--grn:#15a36a;--red:#e23744;--amb:#e0962f;--blue:#2f74e0;--accent:#6d5cff;--acc2:#5a8cff;--inp:#fff;--inp2:#fff;--thbg:#e8eef8;--thtx:#34415c;--totg:linear-gradient(135deg,#e9f0ff,#f6f9ff);--warnbg:rgba(226,55,68,.08);--nowbg:rgba(47,116,224,.12)}
 body.light .exitbox,body.light .exsumbox{background:#f5f8fc}
@@ -239,6 +247,22 @@ body.light2 .exitbox,body.light2 .exsumbox{background:#f9f4ea}
 </div>
 
 <div class="card">
+  <div class="sec-t" style="font-size:14px">🏦 法人籌碼 — 外資買賣超（近5日・張，紅買綠賣）</div>
+  <div class="grid">
+    <div><div class="hcol">🟥 鴻海 2317</div><div id="ii-chart-hh"><div class="hint">⚪ 待更新（每日17:00盤後自動填）</div></div><div class="hint" id="ii-sum-hh"></div></div>
+    <div><div class="hcol">🟩 台積電 2330</div><div id="ii-chart-ly"><div class="hint">⚪ 待更新（每日17:00盤後自動填）</div></div><div class="hint" id="ii-sum-ly"></div></div>
+  </div>
+  <div class="hint" id="ii-date"></div>
+</div>
+<div class="card">
+  <div class="sec-t" style="font-size:14px">💳 融資融券（近5日・張）</div>
+  <div class="grid">
+    <div><div class="hcol">🟥 鴻海 2317</div><div id="mg-chart-hh"><div class="hint">⚪ 待更新</div></div><div class="hint" id="mg-sum-hh"></div></div>
+    <div><div class="hcol">🟩 台積電 2330</div><div id="mg-chart-ly"><div class="hint">⚪ 待更新</div></div><div class="hint" id="mg-sum-ly"></div></div>
+  </div>
+  <div class="hint">融資增＝買盤積極／融券增＝看空力道。融資=主色柱、融券=琥珀柱。</div>
+</div>
+<div class="card">
   <div class="sec-t" style="font-size:14px">✅ 明日驗證重點</div>
   <div id="checks">
   <div class="chk">① 今晚美股：NQ那指期 / 費半SOX / 美債10Y(TVC:US10Y) / VIX(VX1!)</div>
@@ -254,24 +278,6 @@ body.light2 .exitbox,body.light2 .exsumbox{background:#f9f4ea}
   ｜ 手續費率 0.1425%×折扣　證交稅 0.3%
   ｜ <label style="display:inline"><input type="checkbox" id="aftertax" checked style="width:auto"> 計入稅費</label>
 </div></div>
-<div class="card">
-  <div class="sec-t" style="font-size:14px">🏦 法人籌碼（三大法人・單位：張）</div>
-  <table>
-    <tr><th>股票</th><th>外資</th><th>投信</th><th>自營</th><th>合計</th><th>近5日外資</th><th>連續</th></tr>
-    <tr><td class="c">鴻海 2317</td><td class="c" id="ii-hh-f">⚪</td><td class="c" id="ii-hh-t">⚪</td><td class="c" id="ii-hh-d">⚪</td><td class="c" id="ii-hh-s">⚪</td><td class="c" id="ii-hh-5">⚪</td><td class="c" id="ii-hh-c">⚪</td></tr>
-    <tr><td class="c">台積電 2330</td><td class="c" id="ii-ly-f">⚪</td><td class="c" id="ii-ly-t">⚪</td><td class="c" id="ii-ly-d">⚪</td><td class="c" id="ii-ly-s">⚪</td><td class="c" id="ii-ly-5">⚪</td><td class="c" id="ii-ly-c">⚪</td></tr>
-  </table>
-  <div class="hint" id="ii-date">資料日：待更新 ⚪（每日 17:00 盤後自動填，三大法人約 16:00 後揭露・正值＝買超紅／負值＝賣超綠）</div>
-</div>
-<div class="card">
-  <div class="sec-t" style="font-size:14px">💳 融資融券（單位：張）</div>
-  <table>
-    <tr><th>股票</th><th>融資餘額</th><th>資增減</th><th>融券餘額</th><th>券增減</th><th>券資比</th></tr>
-    <tr><td class="c">鴻海 2317</td><td class="c" id="mg-hh-mb">⚪</td><td class="c" id="mg-hh-mc">⚪</td><td class="c" id="mg-hh-sb">⚪</td><td class="c" id="mg-hh-sc">⚪</td><td class="c" id="mg-hh-r">⚪</td></tr>
-    <tr><td class="c">台積電 2330</td><td class="c" id="mg-ly-mb">⚪</td><td class="c" id="mg-ly-mc">⚪</td><td class="c" id="mg-ly-sb">⚪</td><td class="c" id="mg-ly-sc">⚪</td><td class="c" id="mg-ly-r">⚪</td></tr>
-  </table>
-  <div class="hint">資料日：待更新 ⚪（每日 17:00 盤後自動填・融資增＝買盤積極／融券增＝看空力道）</div>
-</div>
 </div>
 
 <!-- ===== PAGE 2 ===== -->
@@ -706,19 +712,30 @@ document.addEventListener('click',closeThemeMenu);
   try{const s=localStorage.getItem('dashTheme');const f=THEMES.findIndex(t=>t.id===s);if(f>=0)idx=f;}catch(e){}
   applyTheme(idx);})();
 /* 每日盤後資料(GitHub Actions 每天17:00產生 data.json;讀不到就用內建值) */
+function fmtK(v){return (v>0?'+':'')+Math.round(v).toLocaleString();}
+function barsSigned(vals){const vv=vals.map(v=>v==null?0:v);const max=Math.max.apply(null,vv.map(Math.abs).concat([1]));
+  return '<div class="mbars">'+vv.map(v=>{const h=Math.abs(v)/max*44;const c=v>=0?'var(--red)':'var(--grn)';
+    return '<div class="mbar"><span class="bv" style="color:'+c+'">'+fmtK(v)+'</span><div class="bb" style="height:'+h.toFixed(0)+'px;background:'+c+'"></div></div>';}).join('')+'</div>';}
+function barsLevel(vals,color){const vv=vals.map(v=>v==null?0:v);const mn=Math.min.apply(null,vv),mx=Math.max.apply(null,vv),rng=(mx-mn)||1;
+  return '<div class="mbars">'+vv.map(v=>{const h=10+(v-mn)/rng*34;
+    return '<div class="mbar"><span class="bv">'+Math.round(v).toLocaleString()+'</span><div class="bb" style="height:'+h.toFixed(0)+'px;background:'+color+'"></div></div>';}).join('')+'</div>';}
+function datesRow(dates){return '<div class="mdates">'+dates.map(d=>'<span>'+d+'</span>').join('')+'</div>';}
 function applyData(d){try{
-  const fz=n=>(n>0?'+':'')+f0(n);
   ['hh','ly'].forEach(k=>{const s=d[k];if(!s)return;
     if(s.up!=null)POS[k].up=s.up;if(s.mid!=null)POS[k].mid=s.mid;if(s.dn!=null)POS[k].dn=s.dn;
     if(s.close!=null){POS[k].close=s.close;document.getElementById(k+'-in').value=s.close;document.getElementById(k+'-rg').value=s.close;document.getElementById(k+'-px').textContent=fpx(s.close);}
     const m20=document.getElementById(k+'-ma20'),m60=document.getElementById(k+'-ma60');
     if(m20&&s.ma20!=null)m20.textContent=fpx(s.ma20);if(m60&&s.ma60!=null)m60.textContent=fpx(s.ma60);
-    if(s.ii){const I=s.ii;const SET=(sfx,v)=>{const e=document.getElementById('ii-'+k+'-'+sfx);if(!e)return;
-      if(v==null){e.textContent='⚪';e.style.color='var(--mut)';}else if(typeof v==='number'){e.textContent=fz(v);e.style.color=col(v);}else{e.textContent=v;e.style.color='var(--txt)';}};
-      SET('f',I.foreign);SET('t',I.trust);SET('d',I.dealer);SET('s',I.total);SET('5',I.f5);SET('c',I.streak);}
-    if(s.margin){const M=s.margin;const SETm=(sfx,v,signed)=>{const e=document.getElementById('mg-'+k+'-'+sfx);if(!e)return;
-      if(v==null){e.textContent='⚪';e.style.color='var(--mut)';}else if(signed){e.textContent=fz(v);e.style.color=col(v);}else{e.textContent=(typeof v==='number'?f0(v):v);e.style.color='var(--txt)';}};
-      SETm('mb',M.mBal);SETm('mc',M.mChg,true);SETm('sb',M.sBal);SETm('sc',M.sChg,true);SETm('r',M.ratio);}
+    const H=s.hist;
+    if(H&&H.dates&&H.dates.length){
+      const ic=document.getElementById('ii-chart-'+k);if(ic&&H.fg)ic.innerHTML=barsSigned(H.fg)+datesRow(H.dates);
+      const isum=document.getElementById('ii-sum-'+k);
+      if(isum){const I=s.ii||{};isum.innerHTML='投信5日 '+(I.trust5!=null?fmtK(I.trust5):'⚪')+'　·　近5日外資 '+(I.f5!=null?fmtK(I.f5):'⚪')+(I.streak?'　·　外資'+I.streak:'');}
+      const mc=document.getElementById('mg-chart-'+k);
+      if(mc&&H.mBal)mc.innerHTML='<div class="mlbl">融資餘額</div>'+barsLevel(H.mBal,'var(--accent)')+datesRow(H.dates)+'<div class="mlbl">融券餘額</div>'+barsLevel(H.sBal,'var(--amb)')+datesRow(H.dates);
+      const msum=document.getElementById('mg-sum-'+k);
+      if(msum){const M=s.margin||{};msum.innerHTML='融資 '+(M.mBal!=null?Math.round(M.mBal).toLocaleString():'⚪')+'（'+(M.mChg!=null?fmtK(M.mChg):'—')+'）　·　融券 '+(M.sBal!=null?Math.round(M.sBal).toLocaleString():'⚪')+'（'+(M.sChg!=null?fmtK(M.sChg):'—')+'）';}
+    }
   });
   if(d.checks&&d.checks.length){const c=document.getElementById('checks');if(c)c.innerHTML=d.checks.map((t,i)=>'<div class="chk"'+(i===d.checks.length-1?' style="border:none"':'')+'>'+t+'</div>').join('');}
   const du=document.getElementById('dataupd');if(du)du.textContent='關卡/籌碼資料日 '+(d.tradeDate||'')+'　·　更新 '+(d.updated||'');
