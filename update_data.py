@@ -15,15 +15,23 @@ STOCKS = {"hh": "2317", "ly": "2330"}   # 鴻海 / 台積電
 UA = {"User-Agent": "Mozilla/5.0 (compatible; dashboard-bot/1.0)"}
 TZ = datetime.timezone(datetime.timedelta(hours=8))  # 台北
 
-def get_json(url, retries=3):
+def get_json(url, retries=4):
+    # 證交所限流約「每5秒3次」，每次請求前先等待，避免被擋導致資料不齊
     for i in range(retries):
+        time.sleep(2.5)
         try:
             req = urllib.request.Request(url, headers=UA)
-            with urllib.request.urlopen(req, timeout=20) as r:
-                return json.loads(r.read().decode("utf-8"))
+            with urllib.request.urlopen(req, timeout=25) as r:
+                j = json.loads(r.read().decode("utf-8"))
+            # STOCK_DAY/T86 被限流時會回 stat 非 OK，視為失敗重試
+            if isinstance(j, dict) and j.get("stat") and j.get("stat") != "OK":
+                print("  ! stat=%s 重試 %s" % (j.get("stat"), url[-30:]))
+                time.sleep(4)
+                continue
+            return j
         except Exception as e:
-            print("  ! fetch fail", url[:80], e)
-            time.sleep(2)
+            print("  ! fetch fail", url[-40:], e)
+            time.sleep(5)
     return None
 
 def num(x):
@@ -68,6 +76,7 @@ def closes_and_last(stockno, today):
         d0 = closes[-1]
         last = {"date": roc_to_ad(d0[0]), "high": d0[1], "low": d0[2], "close": d0[3]}
     closevals = [r[3] for r in closes]
+    print("  %s 收盤資料 %d 天（需≥20算月線、≥60算季線）" % (stockno, len(closevals)))
     return last, closevals
 
 def san_guan(high, low):
