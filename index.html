@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鴻海 2317 / 台積電 2330 盯盤儀表板</title>
+<style>
+:root{--bg:#0f1420;--card:#1a2233;--card2:#212c42;--line:#2e3a52;--txt:#e6edf7;--mut:#8a98b2;
+--grn:#3fd17a;--red:#ff6b6b;--amb:#ffce5c;--blue:#5aa9ff;--accent:#7c5cff;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang TC","Microsoft JhengHei",Arial,sans-serif;
+background:var(--bg);color:var(--txt);line-height:1.5;padding:18px;max-width:1000px;margin:0 auto}
+h1{font-size:20px;font-weight:800;letter-spacing:.5px}
+.sub{color:var(--mut);font-size:12px;margin:4px 0 14px}
+.apphead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.themebtn{background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:13px;font-weight:700;padding:7px 13px;border-radius:20px;cursor:pointer;white-space:nowrap}
+.tabs,.stkbar{display:flex;gap:8px;margin-bottom:12px}
+.tabbtn{flex:1;background:var(--card);border:1px solid var(--line);color:var(--mut);font-size:14px;font-weight:800;padding:11px;border-radius:12px;cursor:pointer;transition:.15s}
+.tabbtn.active{background:linear-gradient(135deg,var(--accent),#5a8cff);color:#fff;border-color:transparent}
+.stkbtn{flex:1;background:var(--card);border:1px solid var(--line);color:var(--mut);font-size:14px;font-weight:800;padding:9px;border-radius:10px;cursor:pointer}
+.stkbtn.active{color:#fff;border-color:transparent}
+#sb-hh.active{background:linear-gradient(135deg,#ff6b6b,#ff9a6b)}
+#sb-ly.active{background:linear-gradient(135deg,#3fd17a,#5ad1a8)}
+.stkbar{margin-bottom:16px}
+.page{display:none}.page.active{display:block}
+.stk-ly{display:none}
+body.sel-ly .stk-ly{display:block}body.sel-ly .stk-hh{display:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.stk-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.stk-name{font-size:17px;font-weight:800}
+.stk-tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700}
+.tag-bull{background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.4)}
+.tag-bear{background:rgba(63,209,122,.15);color:var(--grn);border:1px solid rgba(63,209,122,.4)}
+.px{font-size:30px;font-weight:800}.pl{font-size:13px;font-weight:700;margin-top:2px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.row:last-child{border-bottom:none}.row .k{color:var(--mut)}.row .v{font-weight:700}
+.sec-t{font-size:12px;color:var(--accent);font-weight:800;margin:14px 0 6px;letter-spacing:1px}
+.bar-wrap{margin:16px 0 6px;position:relative;height:62px}
+.bar{position:absolute;top:28px;left:0;right:0;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--grn),var(--amb),var(--red))}
+.tick{position:absolute;top:20px;width:2px;height:22px;background:var(--mut)}
+.tick span{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--mut);white-space:nowrap}
+.now{position:absolute;top:37px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid var(--blue)}
+.now span{position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--blue);font-weight:800;white-space:nowrap}
+.lvltb{width:100%;border-collapse:collapse;margin-top:4px}
+.lvltb th{background:#243049;color:#cdd8ee;font-size:11px;padding:5px 8px}
+.lvltb td{padding:4px 8px;font-size:12px;border-bottom:1px solid var(--line)}
+.lvltb .p{font-weight:800;text-align:right;width:78px;white-space:nowrap}
+.lvltb .lvpl{font-size:11px;text-align:right;white-space:nowrap;font-weight:700;width:120px}
+.lvltb tr.r .p{color:var(--red)}.lvltb tr.g .p{color:var(--grn)}
+.lvltb tr.nowrow td{background:rgba(90,169,255,.14);color:var(--blue);font-weight:800;border-top:2px solid var(--blue);border-bottom:2px solid var(--blue)}
+.calc{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}
+.calc label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+.calchd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.synbtn{background:var(--accent);border:none;color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.calc input[type=number]{width:100%;background:#0c111c;border:1px solid var(--line);color:var(--txt);font-size:18px;font-weight:700;padding:8px 10px;border-radius:8px;text-align:center}
+.calc input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent)}
+.bigpl{font-size:26px;font-weight:800;text-align:center;margin:10px 0 2px}
+.bigpct{font-size:13px;text-align:center;color:var(--mut)}
+.mini{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-top:6px}
+.opts{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--mut);flex-wrap:wrap}
+.opts input{width:64px;background:#0c111c;border:1px solid var(--line);color:var(--txt);padding:3px 6px;border-radius:6px;text-align:center}
+.total{background:linear-gradient(135deg,#1f2a44,#172036);border:1px solid var(--accent);border-radius:14px;padding:11px 14px;text-align:center;margin-bottom:14px}
+.total .lab{font-size:11px;color:var(--mut);letter-spacing:.5px}
+.splitrow{display:flex;margin:6px 0 2px}
+.half{flex:1;padding:2px 8px;display:flex;align-items:center;justify-content:center;gap:14px}.half+.half{border-left:1px solid var(--line)}
+.half .hl{font-size:20px;color:var(--txt);font-weight:800}
+.hrt{display:flex;flex-direction:row;align-items:baseline;gap:8px;flex-wrap:wrap}
+.hrt .hn{font-size:18px;font-weight:800}.hrt .hp{font-size:12px;color:var(--mut)}
+.tdiv{height:1px;background:var(--line);margin:6px 0}
+.trow{display:flex;align-items:baseline;justify-content:center;gap:10px}
+.trow .lab{font-size:14px;color:var(--mut)}.trow .num{font-size:25px;font-weight:900}
+.plan h3{font-size:14px;margin:14px 0 8px;padding-left:8px;border-left:3px solid var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:middle}
+th{background:#243049;color:#cdd8ee;font-weight:700}
+td.c{text-align:center;font-weight:700;white-space:nowrap}
+.b-tp{color:var(--grn)}.b-sl{color:var(--red)}
+.chk{font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.foot{color:var(--mut);font-size:11px;margin-top:18px;line-height:1.7}
+.warn{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);border-radius:10px;padding:10px 12px;font-size:12.5px;margin-bottom:16px}
+.fund-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--card2);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.fund-top label{font-size:12px;color:var(--mut)}
+.fund-top input{background:#0c111c;border:1px solid var(--line);color:var(--txt);font-size:18px;font-weight:800;padding:6px 10px;border-radius:8px;width:150px;text-align:center}
+.planhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.planhd h3{margin:0;border-left:3px solid var(--accent);padding-left:8px;font-size:14px}
+.rowbtns button{background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:12px;font-weight:800;padding:5px 11px;border-radius:8px;cursor:pointer;margin-left:6px}
+.bt input{background:#0c111c;border:1px solid var(--line);color:var(--txt);padding:5px 6px;border-radius:6px;text-align:center;width:84px;font-weight:700}
+.bt input.tin{width:100%;text-align:left;font-weight:600;font-size:12px}
+.sumline{display:flex;justify-content:space-between;font-size:13px;padding:5px 2px;border-bottom:1px solid var(--line)}
+.sumline b{font-weight:800}
+.hint{font-size:11px;color:var(--mut);margin-top:6px}
+.exitbox{margin-top:10px;background:#0c111c;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.exhd2{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.uni{font-size:12px;color:var(--mut);cursor:pointer;display:flex;align-items:center;gap:5px}.uni input{width:auto}
+.exitem{margin-bottom:10px}
+.exhd{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:5px}
+.exhd .lbl{color:var(--mut)}.exhd b{font-weight:800;font-size:14px}
+.ein{width:100%;background:#161d2c;border:1px solid var(--line);color:var(--txt);padding:6px;border-radius:6px;text-align:center;font-weight:700}
+.exitem input[type=range]{width:100%;margin-top:6px;accent-color:var(--accent)}
+.exgrid{display:flex;gap:10px}.exgrid .ec1{flex:2}.exgrid .ec2{flex:1.4}
+.exsub{font-size:11px;color:var(--mut);margin-bottom:3px}
+.exin{display:flex;align-items:center;gap:8px}.exin .exsub{margin:0;white-space:nowrap}.exin .ein{flex:1}
+.allbtn{background:var(--accent);border:none;color:#fff;font-size:11px;font-weight:800;padding:0 9px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.exsumbox{display:flex;justify-content:space-between;align-items:center;background:#0c111c;border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-top:8px}
+.exsumbox .l{font-size:13px;color:var(--mut)}.exsumbox b{font-size:17px;font-weight:900}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.allocbar{display:flex;height:24px;border-radius:8px;overflow:hidden;margin:14px 0 8px;background:#0c111c;border:1px solid var(--line)}
+.allocbar .seg{height:100%;transition:width .25s;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#0b0f18;white-space:nowrap;overflow:hidden}
+.alloclegend{display:flex;gap:18px;font-size:12px;color:var(--mut);flex-wrap:wrap}
+.alloclegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.alloclegend b{color:var(--txt)}
+.allocwrap{display:flex;align-items:center;gap:22px;margin:10px 0 4px;flex-wrap:wrap}
+.donut{position:relative;width:168px;height:168px;flex:0 0 168px}
+.donut svg{width:168px;height:168px;transform:rotate(0)}
+.donut circle{transition:stroke-dasharray .3s,stroke-dashoffset .3s}
+.donut-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-c .big{font-size:26px;font-weight:900;line-height:1}
+.donut-c .sub{font-size:11px;color:var(--mut);margin-top:3px}
+.alloclist{flex:1;min-width:230px}
+.alli{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+.alli i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:middle}
+.alli b{font-weight:800}
+.alli.grand{border-bottom:none;color:var(--mut);padding-top:10px}
+.alli.grand>span:first-child{font-weight:700;color:var(--txt)}
+.fundinp{background:#0c111c;border:1px solid var(--line);color:var(--txt);font-size:15px;font-weight:800;padding:6px 10px;border-radius:8px;text-align:right;width:150px}
+.fundinp:focus{border-color:var(--accent);outline:none}
+.fundwrap{display:flex;align-items:center;gap:6px}
+.fundwrap .u{font-size:13px;color:var(--mut)}
+body.light .fundinp{background:#fff}
+.revbox{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.exrow2{display:grid;grid-template-columns:90px 120px 1fr;align-items:center;gap:12px;font-size:12.5px;padding:6px 0;color:var(--mut)}
+.exrow2 input{width:100%;background:#161d2c;border:1px solid var(--line);color:var(--txt);padding:5px 6px;border-radius:6px;text-align:center;font-weight:700}
+.exrow2 b{font-size:15px;font-weight:800;color:var(--blue)}
+.exrow2>span:last-child{font-size:15px;font-weight:800}
+body.light .exrow2 input{background:#fff}
+.scenbar{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.scenlbl{font-size:12px;color:var(--mut);margin-right:4px;font-weight:700}
+.scenbtn{background:var(--card2);border:1px solid var(--line);color:var(--mut);font-size:12px;font-weight:800;padding:5px 13px;border-radius:8px;cursor:pointer}
+.scenbtn.active{background:linear-gradient(135deg,var(--accent),#5a8cff);color:#fff;border-color:transparent}
+.livebar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.livebtn{background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;font-size:13px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer}
+.livebtn.loading{opacity:.6}
+/* 淺色版 */
+body.light{--bg:#eef2f8;--card:#fff;--card2:#f3f6fb;--line:#dbe3ef;--txt:#1d2735;--mut:#69748a;--grn:#15a36a;--red:#e23744;--amb:#e0962f;--blue:#2f74e0;--accent:#6d5cff}
+body.light .total{background:linear-gradient(135deg,#e9f0ff,#f6f9ff)}
+body.light .calc input[type=number],body.light .fund-top input,body.light .bt input,body.light .ein,body.light .opts input{background:#fff}
+body.light .exitbox,body.light .exsumbox{background:#f5f8fc}
+body.light th,body.light .lvltb th{background:#e8eef8;color:#34415c}
+body.light .warn{background:rgba(226,55,68,.08)}
+body.light .lvltb tr.nowrow td{background:rgba(47,116,224,.12)}
+</style>
+</head>
+<body class="sel-hh">
+<div class="apphead">
+  <h1>📊 鴻海 2317 ／ 台積電 2330</h1>
+  <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+    <span id="livestatus" style="font-size:11px;color:var(--mut)">現價載入中…</span>
+    <button class="themebtn" id="themebtn" onclick="toggleTheme()">☀️ 淺色</button>
+  </div>
+</div>
+<div class="sub">即時現價：TWSE 每10秒自動更新（盤中9:00–13:30）｜其餘為6/8收盤｜本檔僅供個人參考</div>
+<div class="tabs">
+  <button class="tabbtn active" onclick="tab('p1',this)">📈 盯盤儀表板</button>
+  <button class="tabbtn" onclick="tab('p2',this)">📋 進出場 + 資金計畫</button>
+</div>
+<div class="stkbar" id="stkbar" style="display:none">
+  <button class="stkbtn active" id="sb-hh" onclick="stockSel('hh')">🟥 鴻海 2317</button>
+  <button class="stkbtn" id="sb-ly" onclick="stockSel('ly')">🟩 台積電 2330</button>
+</div>
+
+<!-- ===== PAGE 1 ===== -->
+<div class="page active" id="p1">
+<div class="total">
+  <div class="lab">假設情境下 損益（稅後）— 拖滑桿/輸入假設股價</div>
+  <div class="splitrow">
+    <div class="half"><span class="hl">鴻海 2317</span><span class="hrt"><span class="hn" id="hh-banner">—</span><span class="hp" id="hh-bannerp"></span></span></div>
+    <div class="half"><span class="hl">台積電 2330</span><span class="hrt"><span class="hn" id="ly-banner">—</span><span class="hp" id="ly-bannerp"></span></span></div>
+  </div>
+  <div class="tdiv"></div>
+  <div class="trow"><span class="lab">兩檔合計</span><span class="num" id="totalPL">—</span></div>
+</div>
+<div class="grid" style="margin-bottom:16px">
+  <div class="warn tgtbar" id="tgt-hh" style="background:rgba(90,169,255,.1);border-color:rgba(90,169,255,.35);margin:0"></div>
+  <div class="warn tgtbar" id="tgt-ly" style="background:rgba(90,169,255,.1);border-color:rgba(90,169,255,.35);margin:0"></div>
+</div>
+<div class="grid">
+<div class="card">
+  <div class="stk-head"><div><div class="stk-name">鴻海 2317</div>
+    <div style="font-size:11px;color:var(--mut)" id="hh-hdr">625 股（零股）｜均價 267.24</div></div>
+    <div class="stk-tag tag-bull">站上月線・偏多</div></div>
+  <div class="px" id="hh-px">269.50</div><div class="pl" id="hh-pl"></div>
+  <div class="sec-t">三關價（明日）</div><div class="bar-wrap" id="hh-bar"></div>
+  <div class="calc"><div class="calchd"><label style="margin:0">💰 損益試算 — 假設股價（鴻海）</label><button class="synbtn" onclick="syncPx('hh')">↻ 同步現價</button></div>
+    <input type="number" id="hh-in" value="269.5" step="0.5">
+    <input type="range" id="hh-rg" min="200" max="340" value="269.5" step="0.5">
+    <div class="bigpl" id="hh-out">—</div><div class="bigpct" id="hh-pct"></div>
+    <div class="mini"><span>毛利 <b id="hh-gross"></b></span><span>稅費 <b id="hh-fee"></b></span></div></div>
+  <div class="sec-t">均線 / 關卡</div>
+  <div class="row"><span class="k">月線 MA20</span><span class="v">265.60</span></div>
+  <div class="row"><span class="k">季線 MA60</span><span class="v">231.15</span></div>
+  <div class="sec-t">關鍵價位對照（壓力↑／支撐↓ ・含到價損益）</div>
+  <div id="hh-lvA"></div>
+</div>
+
+<div class="card">
+  <div class="stk-head"><div><div class="stk-name">台積電 2330</div>
+    <div style="font-size:11px;color:var(--mut)" id="ly-hdr">25 股（零股）｜均價 2,305</div></div>
+    <div class="stk-tag tag-bull">站上月線・偏多</div></div>
+  <div class="px" id="ly-px">2,305</div><div class="pl" id="ly-pl"></div>
+  <div class="sec-t">三關價（明日・6/8官方未更新前為估算）</div><div class="bar-wrap" id="ly-bar"></div>
+  <div class="calc"><div class="calchd"><label style="margin:0">💰 損益試算 — 假設股價（台積電）</label><button class="synbtn" onclick="syncPx('ly')">↻ 同步現價</button></div>
+    <input type="number" id="ly-in" value="2305" step="5">
+    <input type="range" id="ly-rg" min="2000" max="3100" value="2305" step="5">
+    <div class="bigpl" id="ly-out">—</div><div class="bigpct" id="ly-pct"></div>
+    <div class="mini"><span>毛利 <b id="ly-gross"></b></span><span>稅費 <b id="ly-fee"></b></span></div></div>
+  <div class="sec-t">均線 / 關卡</div>
+  <div class="row"><span class="k">月線 MA20</span><span class="v">2,287</span></div>
+  <div class="row"><span class="k">季線 MA60</span><span class="v">2,099</span></div>
+  <div class="sec-t">關鍵價位對照（壓力↑／支撐↓ ・含到價損益）</div>
+  <div id="ly-lvB"></div>
+</div>
+</div>
+
+<div class="card"><div class="opts">
+  手續費折扣 <input type="number" id="disc" value="0.5" step="0.05" min="0.1" max="1">（5折=0.5）
+  ｜ 手續費率 0.1425%×折扣　證交稅 0.3%
+  ｜ <label style="display:inline"><input type="checkbox" id="aftertax" checked style="width:auto"> 計入稅費</label>
+</div></div>
+</div>
+
+<!-- ===== PAGE 2 ===== -->
+<div class="page" id="p2">
+  <div class="card">
+    <div class="sec-t" style="font-size:14px">💼 資金配置總覽</div>
+    <div class="allocwrap">
+      <div class="donut">
+        <svg viewBox="0 0 168 168">
+          <circle cx="84" cy="84" r="62" fill="none" stroke="var(--line)" stroke-width="22"/>
+          <circle id="dn-hh" cx="84" cy="84" r="62" fill="none" stroke="#5aa9ff" stroke-width="22" transform="rotate(-90 84 84)" stroke-dasharray="0 999"/>
+          <circle id="dn-ly" cx="84" cy="84" r="62" fill="none" stroke="#ffce5c" stroke-width="22" transform="rotate(-90 84 84)" stroke-dasharray="0 999"/>
+          <circle id="dn-cash" cx="84" cy="84" r="62" fill="none" stroke="#566079" stroke-width="22" transform="rotate(-90 84 84)" stroke-dasharray="0 999"/>
+        </svg>
+        <div class="donut-c"><div class="big" id="dn-used">—</div><div class="sub">已投入</div></div>
+      </div>
+      <div class="alloclist">
+        <div class="alli"><span><i style="background:#5aa9ff"></i>鴻海 2317</span><b id="al-hh">—</b></div>
+        <div class="alli"><span><i style="background:#ffce5c"></i>台積電 2330</span><b id="al-ly">—</b></div>
+        <div class="alli"><span><i style="background:#566079"></i>預留現金</span><b id="al-cash">—</b></div>
+        <div class="alli grand"><span>總操作資金</span><span class="fundwrap"><input type="number" id="fund" value="1000000" step="10000" class="fundinp"><span class="u">元</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 鴻海 模塊 -->
+  <div class="card plan stk-hh">
+    <div class="planhd"><h3>🟥 鴻海 2317 ── 分批進場計算器</h3>
+      <div class="rowbtns"><button onclick="addRow('hh')">＋列</button><button onclick="removeRow('hh')">－列</button></div></div>
+    <div class="scenbar"><span class="scenlbl">🎬 進出場情境</span>
+      <button class="scenbtn active" id="hh-sc1" onclick="scen('hh',1)">情境一</button>
+      <button class="scenbtn" id="hh-sc2" onclick="scen('hh',2)">情境二</button>
+      <button class="scenbtn" id="hh-sc3" onclick="scen('hh',3)">情境三</button></div>
+    <div style="overflow-x:auto"><table class="bt">
+      <tr><th>批次</th><th>觸發/條件</th><th>掛單價(假設)</th><th>累計買入均價</th><th>損平價(含費稅)</th><th>股數</th><th>投入金額</th><th>佔資金%</th></tr>
+      <tbody id="hh-rows"></tbody>
+    </table></div>
+    <div style="margin-top:8px">
+      <div class="sumline"><span>計畫總投入</span><b id="hh-sumamt"></b></div>
+      <div class="sumline"><span>佔總資金</span><b id="hh-sumpct"></b></div>
+      <div class="sumline"><span>規劃加權平均成本</span><b id="hh-avg"></b></div>
+      <div class="sumline"><span>預估總股數 / 張數</span><b id="hh-shares"></b></div>
+    </div>
+    <div class="exitbox">
+      <div class="exhd2"><span style="font-size:13px;font-weight:800;color:var(--accent)">停損停利（分批出場・稅後）</span>
+        <div style="display:flex;align-items:center;gap:8px"><label class="uni"><input type="checkbox" id="hh-uni"> 統一價</label>
+        <div class="rowbtns"><button onclick="addExit('hh')">＋桿</button><button onclick="removeExit('hh')">－桿</button></div></div></div>
+      <div id="hh-exits"></div>
+      <div class="exsumbox"><span class="l">累計出場 ／ 損益</span><b id="hh-exsum">—</b></div>
+      <div class="revbox">
+        <div class="exsub" style="font-size:12px;color:var(--accent);font-weight:800;margin-bottom:4px">🎯 反推目標股價（依整體部位・稅後）</div>
+        <div class="exrow2"><span style="flex:1">目標報酬 %</span><input type="number" id="hh-rpct" value="10" step="1"><span>→ <b id="hh-rpctpx">—</b></span></div>
+        <div class="exrow2"><span style="flex:1">目標損益 元</span><input type="number" id="hh-ramt" value="10000" step="1000"><span>→ <b id="hh-ramtpx">—</b></span></div>
+      </div>
+    </div>
+    <div class="hint">※ 批次名稱、條件、觸發價、股數皆可改；右上角＋／－列自行增減。已含試單那批。</div>
+  </div>
+  <!-- 聯亞 模塊 -->
+  <div class="card plan stk-ly">
+    <div class="planhd"><h3>🟩 台積電 2330 ── 分批進場計算器</h3>
+      <div class="rowbtns"><button onclick="addRow('ly')">＋列</button><button onclick="removeRow('ly')">－列</button></div></div>
+    <div class="scenbar"><span class="scenlbl">🎬 進出場情境</span>
+      <button class="scenbtn active" id="ly-sc1" onclick="scen('ly',1)">情境一</button>
+      <button class="scenbtn" id="ly-sc2" onclick="scen('ly',2)">情境二</button>
+      <button class="scenbtn" id="ly-sc3" onclick="scen('ly',3)">情境三</button></div>
+    <div style="overflow-x:auto"><table class="bt">
+      <tr><th>批次</th><th>觸發/條件</th><th>掛單價(假設)</th><th>累計買入均價</th><th>損平價(含費稅)</th><th>股數</th><th>投入金額</th><th>佔資金%</th></tr>
+      <tbody id="ly-rows"></tbody>
+    </table></div>
+    <div style="margin-top:8px">
+      <div class="sumline"><span>計畫總投入</span><b id="ly-sumamt"></b></div>
+      <div class="sumline"><span>佔總資金</span><b id="ly-sumpct"></b></div>
+      <div class="sumline"><span>規劃加權平均成本</span><b id="ly-avg"></b></div>
+      <div class="sumline"><span>預估總股數 / 張數</span><b id="ly-shares"></b></div>
+    </div>
+    <div class="exitbox">
+      <div class="exhd2"><span style="font-size:13px;font-weight:800;color:var(--accent)">停損停利（分批出場・稅後）</span>
+        <div style="display:flex;align-items:center;gap:8px"><label class="uni"><input type="checkbox" id="ly-uni"> 統一價</label>
+        <div class="rowbtns"><button onclick="addExit('ly')">＋桿</button><button onclick="removeExit('ly')">－桿</button></div></div></div>
+      <div id="ly-exits"></div>
+      <div class="exsumbox"><span class="l">累計出場 ／ 損益</span><b id="ly-exsum">—</b></div>
+      <div class="revbox">
+        <div class="exsub" style="font-size:12px;color:var(--accent);font-weight:800;margin-bottom:4px">🎯 反推目標股價（依整體部位・稅後）</div>
+        <div class="exrow2"><span style="flex:1">目標報酬 %</span><input type="number" id="ly-rpct" value="5" step="1"><span>→ <b id="ly-rpctpx">—</b></span></div>
+        <div class="exrow2"><span style="flex:1">目標損益 元</span><input type="number" id="ly-ramt" value="5000" step="1000"><span>→ <b id="ly-ramtpx">—</b></span></div>
+      </div>
+    </div>
+    <div class="hint">※ 批次名稱、條件、觸發價、股數皆可改；右上角＋／－列自行增減。</div>
+  </div>
+
+  <!-- 關鍵價位參考 -->
+  <div class="card plan stk-hh">
+    <div class="sec-t" style="font-size:14px">🔑 鴻海 2317 關鍵價位參考（含意義＋到價損益）</div>
+    <div class="row"><span class="k">現價 / 月線 / 季線</span><span class="v">269.5 ｜ 265.6 ｜ 231.2</span></div>
+    <div id="hh-lvB"></div>
+  </div>
+  <div class="card plan stk-ly">
+    <div class="sec-t" style="font-size:14px">🔑 台積電 2330 關鍵價位參考（含意義＋到價損益）</div>
+    <div class="row"><span class="k">現價 / 月線 / 季線</span><span class="v">2,305 ｜ 2,287 ｜ 2,099</span></div>
+    <div id="ly-lvA"></div>
+  </div>
+
+  <!-- 法人目標價 -->
+  <div class="card plan stk-hh">
+    <div class="sec-t" style="font-size:14px">🎯 鴻海 2317 法人目標價（各外資・12個月）</div>
+    <table><tr><th>券商</th><th>評等</th><th>目標價</th><th>到價空間</th></tr><tbody id="brk-hh"></tbody></table>
+    <div class="hint">外資 12 個月目標價，為一年期預測非保證；資料為 2026/4–6 月上修波。到價空間＝(目標−現價)/現價，隨現價即時更新。</div>
+  </div>
+  <div class="card plan stk-ly">
+    <div class="sec-t" style="font-size:14px">🎯 台積電 2330 法人目標價（各外資・12個月）</div>
+    <table><tr><th>券商</th><th>評等</th><th>目標價</th><th>到價空間</th></tr><tbody id="brk-ly"></tbody></table>
+    <div class="hint">外資 12 個月目標價；資料為 2026/4 月法說後上修波（里昂最高 3,030）。到價空間隨現價即時更新。</div>
+  </div>
+
+  <!-- 停利停損計畫 -->
+  <div class="card plan stk-hh">
+    <h3>停利 / 停損 計畫 — 鴻海 2317（核心波段）</h3>
+    <table>
+      <tr><th>類別</th><th>條件</th><th>價位</th><th>動作</th></tr>
+      <tr><td class="c b-tp">停利①</td><td>前高/漲停壓力區</td><td class="c">284.5–289</td><td>賣 1/3–1/2</td></tr>
+      <tr><td class="c b-tp">停利②</td><td>波段高/整數關</td><td class="c">300–309</td><td>再賣，剩餘移動停利</td></tr>
+      <tr><td class="c b-sl">停損硬</td><td>收盤跌破 6/8 長下影低</td><td class="c">257.5</td><td>試單批全出</td></tr>
+      <tr><td class="c b-sl">停損深</td><td>跌破波段低平台</td><td class="c">240</td><td>留倉者全出</td></tr>
+    </table>
+  </div>
+  <div class="card plan stk-ly">
+    <h3>停利 / 停損 計畫 — 台積電 2330（波段）</h3>
+    <table>
+      <tr><th>類別</th><th>條件</th><th>價位</th><th>動作</th></tr>
+      <tr><td class="c b-tp">停利①</td><td>整數關 / 近期波段高</td><td class="c">2,400–2,440</td><td>賣 1/3，看財報</td></tr>
+      <tr><td class="c b-tp">停利②</td><td>逼近外資目標下緣</td><td class="c">2,800+</td><td>分批了結</td></tr>
+      <tr><td class="c b-sl">停損</td><td>收盤跌破月線</td><td class="c">2,287</td><td>減碼/出場</td></tr>
+      <tr><td class="c b-sl">防線</td><td>季線（長線多頭最後防線）</td><td class="c">2,099</td><td>跌破無條件出</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="sec-t" style="font-size:14px">✅ 明日驗證清單</div>
+    <div class="chk">① 今晚美股：NQ那指期 / 費半SOX / 美債10Y(TVC:US10Y) / VIX(VX1!)</div>
+    <div class="chk">② 今晚三大法人：外資對鴻海、台積電是否續買</div>
+    <div class="chk">③ 開盤30分不動手；鴻海守265.6月線、台積電守2,287月線</div>
+    <div class="chk">④ 台積電：6/10 公布5月營收、Q2法說約7月中；外資目標2,800–3,030</div>
+    <div class="chk" style="border:none">⑤ 鴻海加碼＝三確認到齊；台積電波段為主、跌破月線減碼</div>
+  </div>
+</div>
+
+<div class="foot">數據紀律：價位為官方API實測；壓力支撐為技術判讀；計畫為建議，最終由你決定。稅費為估算（零股最低手續費另計）。非投資建議。</div>
+
+<script>
+const POS={hh:{sh:1000,cost:269.17,close:269.5,dn:251.96,mid:264.75,up:277.54},
+  ly:{sh:25,cost:2308.28,close:2305,dn:2230,mid:2287.5,up:2345}};
+const f0=n=>Math.round(n).toLocaleString();
+const fpx=n=>(+n).toLocaleString(undefined,{maximumFractionDigits:2});
+const col=v=>v>0?'var(--red)':(v<0?'var(--grn)':'var(--mut)');
+/* 法人(外資)目標價 高/低/均 + 到均價套利空間(隨現價動) */
+const TARGETS={hh:{hi:400,lo:317,avg:370,nm:'鴻海 2317'},ly:{hi:3030,lo:2800,avg:2885,nm:'台積電 2330'}};
+/* 各外資券商個別目標價 [券商,評等,目標價(數字或null),null時顯示文字] */
+const BROKERS={
+  hh:[['高盛 Goldman','買進',400,''],['摩根士丹利(大摩)','優於大盤',317,''],
+      ['大摩・樂觀情境','—',444,''],['瑞銀／花旗等','調升',null,'350–400 元']],
+  ly:[['里昂 CLSA','最高',3030,''],['瑞銀 UBS','買進',3000,''],['花旗 Citi','—',2875,''],
+      ['匯豐 HSBC','—',2820,''],['野村 Nomura','—',2800,''],['美銀 BofA','上修',null,'未列確值']]
+};
+function renderBrokers(k){const tb=document.getElementById('brk-'+k);if(!tb)return;const cur=POS[k].close;
+  const spanTxt=v2=>{let sp='—',spc='var(--mut)';if(v2&&cur>0){const v=(v2-cur)/cur*100;sp=(v>=0?'+':'')+v.toFixed(1)+'%';spc=v>=0?'var(--red)':'var(--grn)';}return [sp,spc];};
+  let html=BROKERS[k].map(r=>{const t=r[2];const[sp,spc]=spanTxt(t);const tp=t?f0(t)+' 元':(r[3]||'—');
+    return '<tr><td>'+r[0]+'</td><td class="c">'+r[1]+'</td><td class="c" style="font-weight:800">'+tp+'</td><td class="c" style="color:'+spc+';font-weight:800">'+sp+'</td></tr>';}).join('');
+  const T=TARGETS[k];
+  const sumRow=(lab,val)=>{const[sp,spc]=spanTxt(val);
+    return '<tr style="background:rgba(124,92,255,.1)"><td colspan="2" style="font-weight:800;color:var(--accent)">'+lab+'</td><td class="c" style="font-weight:800">'+f0(val)+' 元</td><td class="c" style="color:'+spc+';font-weight:800">'+sp+'</td></tr>';};
+  html+=sumRow('▌ 目標價 高',T.hi)+sumRow('▌ 目標價 低',T.lo)+sumRow('▌ 目標價 均',T.avg);
+  tb.innerHTML=html;}
+function renderTgt(k){const t=TARGETS[k],cur=POS[k].close,sp=cur>0?(t.avg-cur)/cur*100:0;
+  const el=document.getElementById('tgt-'+k);if(!el)return;
+  el.innerHTML='📌 <b>'+t.nm+'</b><br>'+
+    '<span style="color:var(--mut)">外資目標(12月)：</span>高 <b style="color:var(--red)">'+f0(t.hi)+'</b>／低 <b>'+f0(t.lo)+'</b>／均 <b style="color:var(--amb)">'+f0(t.avg)+'</b><br>'+
+    '<span style="color:var(--mut)">現價 '+fpx(cur)+' → 到均'+f0(t.avg)+' 套利空間 </span><b style="color:'+(sp>=0?'var(--red)':'var(--grn)')+'">'+(sp>=0?'+':'')+sp.toFixed(1)+'%</b>';}
+function tab(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+  document.getElementById('stkbar').style.display=id==='p2'?'flex':'none';}
+function stockSel(k){document.body.classList.toggle('sel-ly',k==='ly');document.body.classList.toggle('sel-hh',k==='hh');
+  document.getElementById('sb-hh').classList.toggle('active',k==='hh');
+  document.getElementById('sb-ly').classList.toggle('active',k==='ly');}
+function feeNet(pr,q,exit){const disc=parseFloat(document.getElementById('disc').value)||0.5;
+  const tax=document.getElementById('aftertax').checked;const gross=(exit-pr)*q;let fee=0;
+  if(tax)fee=pr*q*0.001425*disc+exit*q*0.001425*disc+exit*q*0.003;
+  return{net:gross-fee,pct:pr>0?(gross-fee)/(pr*q)*100:0};}
+function pl(p,px){const r=feeNet(p.cost,p.sh,px);const gross=(px-p.cost)*p.sh;return{gross,fee:gross-r.net,net:r.net,pct:r.pct};}
+const tick=(l,t)=>'<div class="tick" style="left:'+l+'%"><span>'+t+'</span></div>';
+function drawBar(id,p,px){const lo=Math.min(p.dn,px)*0.997,hi=Math.max(p.up,px)*1.003;const pos=x=>((x-lo)/(hi-lo)*100);
+  document.getElementById(id).innerHTML='<div class="bar"></div>'+
+    tick(pos(p.dn),'下關 '+p.dn.toFixed(0))+tick(pos(p.mid),'中關 '+p.mid.toFixed(0))+tick(pos(p.up),'上關 '+p.up.toFixed(0))+
+    '<div class="now" style="left:'+pos(px)+'%"><span>現 '+fpx(px)+'</span></div>';}
+/* 關鍵價位 + 到價損益 */
+const LEVELS={
+ hh:[['314','近月波段最高（6/3 盤中高）',314,'r'],['309','6/3 收盤（前波套牢）',309,'r'],
+     ['293–301','6/1–6/4 套牢區',297,'r'],['289','5/29 漲停高（缺口/真空帶頂）',289,'r'],
+     ['284.5','6/5 收盤',284.5,'r'],['280','整數關＋真空帶上緣',280,'r'],
+     ['277.5','三關價上關（突破續強）',277.5,'r'],['269.5','← 6/8 收盤（現價）',269.5,'now'],
+     ['265.6','月線 MA20（站上＝偏多生命線）',265.6,'g'],['264.75','三關價中關（多空分界）',264.75,'g'],
+     ['257.5','6/8 最低＝長下影低（硬停損）',257.5,'g'],['252.0','三關價下關（跌破轉弱）',252,'g'],
+     ['240','5/20 波段低＋停損平台（深停損）',240,'g'],['231.2','季線 MA60（長線多頭最後防線）',231.15,'g']],
+ ly:[['3,030','里昂目標價（外資最高・12月期）',3030,'r'],['3,000','瑞銀目標價',3000,'r'],
+     ['2,875','花旗目標價',2875,'r'],['2,440','6/3 波段高',2440,'r'],
+     ['2,400','整數關＋三關中關',2400,'r'],['2,345','三關價上關（估）',2345,'r'],
+     ['2,305','← 現價＝你的成本',2305,'now'],
+     ['2,287','月線 MA20（剛站上＝偏多）',2287,'g'],['2,230','三關價下關（估）',2230,'g'],
+     ['2,135','4/30 波段低',2135,'g'],['2,099','季線 MA60（長線多頭支撐）',2099,'g'],
+     ['2,000','整數關＋4月起漲區',2000,'g']]
+};
+const LVM={hh:['hh-lvA','hh-lvB'],ly:['ly-lvA','ly-lvB']};
+function buildLevels(k){LVM[k].forEach(m=>{const el=document.getElementById(m);if(!el)return;
+  let h='<table class="lvltb"><tr><th class="p">價</th><th>意義</th><th style="text-align:right">到價損益</th></tr>';
+  LEVELS[k].forEach((r,i)=>{const cls=r[3]==='now'?'nowrow':r[3];
+    h+='<tr class="'+cls+'"><td class="p">'+r[0]+'</td><td>'+r[1]+'</td><td class="lvpl" id="'+m+'-pl-'+i+'">—</td></tr>';});
+  el.innerHTML=h+'</table>';});}
+function fillLevels(k){const p=POS[k];LVM[k].forEach(m=>{if(!document.getElementById(m))return;
+  LEVELS[k].forEach((r,i)=>{const c=document.getElementById(m+'-pl-'+i);if(!c)return;
+    if(r[2]&&p.sh>0&&r[3]!=='now'){const rr=feeNet(p.cost,p.sh,r[2]);
+      c.textContent=(rr.net>=0?'+':'')+f0(rr.net)+'（'+(rr.pct>=0?'+':'')+rr.pct.toFixed(1)+'%）';c.style.color=col(rr.net);}
+    else{c.textContent=r[3]==='now'?'— 現價 —':'—';c.style.color='var(--mut)';}});});}
+function upd(k){const p=POS[k];const px=parseFloat(document.getElementById(k+'-in').value)||p.close;
+  document.getElementById(k+'-rg').value=px;const r=pl(p,px);
+  const o=document.getElementById(k+'-out');o.textContent=(r.net>=0?'+':'')+f0(r.net)+' 元';o.style.color=col(r.net);
+  document.getElementById(k+'-pct').textContent='報酬率 '+(r.pct>=0?'+':'')+r.pct.toFixed(2)+'%　@ '+fpx(px);
+  document.getElementById(k+'-gross').textContent=(r.gross>=0?'+':'')+f0(r.gross);
+  document.getElementById(k+'-fee').textContent='−'+f0(r.fee);drawBar(k+'-bar',p,px);
+  const cur=pl(p,p.close);const pe=document.getElementById(k+'-pl');
+  pe.textContent='現價損益 '+(cur.net>=0?'+':'')+f0(cur.net)+' 元（'+(cur.pct>=0?'+':'')+cur.pct.toFixed(2)+'%）';
+  pe.style.color=col(cur.net);
+  const bn=document.getElementById(k+'-banner');bn.textContent=(r.net>=0?'+':'')+f0(r.net)+' 元';bn.style.color=col(r.net);
+  document.getElementById(k+'-bannerp').innerHTML='<span style="color:'+col(r.net)+';font-weight:800">('+(r.pct>=0?'+':'')+r.pct.toFixed(2)+'%)</span> @ '+fpx(px);
+  fillLevels(k);renderTgt(k);renderBrokers(k);totalPL();}
+function syncPx(k){document.getElementById(k+'-in').value=POS[k].close;document.getElementById(k+'-rg').value=POS[k].close;upd(k);}
+function totalPL(){const a=pl(POS.hh,parseFloat(document.getElementById('hh-in').value)||POS.hh.close);
+  const b=pl(POS.ly,parseFloat(document.getElementById('ly-in').value)||POS.ly.close);const t=a.net+b.net;
+  const base=POS.hh.cost*POS.hh.sh+POS.ly.cost*POS.ly.sh;const pc=base>0?t/base*100:0;
+  const el=document.getElementById('totalPL');
+  el.innerHTML=(t>=0?'+':'')+f0(t)+' 元 <span style="font-size:.62em;font-weight:800">（'+(pc>=0?'+':'')+pc.toFixed(2)+'%）</span>';
+  el.style.color=col(t);}
+['hh','ly'].forEach(k=>{document.getElementById(k+'-in').addEventListener('input',()=>upd(k));
+  document.getElementById(k+'-rg').addEventListener('input',e=>{document.getElementById(k+'-in').value=e.target.value;upd(k);});});
+document.getElementById('disc').addEventListener('input',()=>fundAll());
+document.getElementById('aftertax').addEventListener('change',()=>fundAll());
+
+/* 資金分批 */
+const NAME={hh:'含零股',ly:'零股'};
+let PLAN={
+  hh:[['試單A(普)','已持有 625 股',267.24,625],['試單B(零)','已持有 375 股',272.39,375],
+      ['加碼①','回測月線265.6不破+三確認',267,0],['加碼②','放量突破上關277.5/280',278,0]],
+  ly:[['試單(已進)','已持有 25 股 @2308',2308.28,25],['加碼①','回測月線2287不破再加',2287,0],['加碼②','突破2400整數關追',2400,0]]
+};
+const EXIT={hh:{rng:[200,340],step:0.5,rows:[[289,1000]]},ly:{rng:[2000,3100],step:5,rows:[[2400,25]]}};
+function esc(s){return String(s).replace(/"/g,'&quot;');}
+/* 損平價(含買賣手續費+證交稅):掛單價→回本賣出價 */
+function breakeven(pr){const d=parseFloat(document.getElementById('disc').value)||0.5,r=0.001425;
+  return pr*(1+r*d)/(1-r*d-0.003);}
+function buildRows(k){const tb=document.getElementById(k+'-rows');tb.innerHTML='';
+  PLAN[k].forEach((r,i)=>{const tr=document.createElement('tr');
+    tr.innerHTML='<td><input type="text" class="tin" id="'+k+'-nm-'+i+'" value="'+esc(r[0])+'"></td>'+
+      '<td><input type="text" class="tin" id="'+k+'-cd-'+i+'" value="'+esc(r[1])+'"></td>'+
+      '<td><input type="number" id="'+k+'-pr-'+i+'" value="'+r[2]+'" step="'+EXIT[k].step+'"></td>'+
+      '<td class="auto" id="'+k+'-ba-'+i+'" style="color:var(--blue)">—</td>'+
+      '<td class="auto" id="'+k+'-be-'+i+'" style="color:var(--amb)">—</td>'+
+      '<td><input type="number" id="'+k+'-q-'+i+'" value="'+r[3]+'" step="'+(k==='ly'?1:5)+'"></td>'+
+      '<td class="auto" id="'+k+'-am-'+i+'">—</td><td class="auto" id="'+k+'-pc-'+i+'">—</td>';
+    tb.appendChild(tr);});
+  document.querySelectorAll('#'+k+'-rows input').forEach(el=>el.addEventListener('input',fundAll));}
+function buildExit(k){const box=document.getElementById(k+'-exits');box.innerHTML='';const E=EXIT[k];
+  E.rows.forEach((r,i)=>{const d=document.createElement('div');d.className='exitem';
+    d.innerHTML='<div class="exhd"><span class="lbl">出場 '+(i+1)+'</span><b id="'+k+'-ex-pl-'+i+'">—</b></div>'+
+      '<div class="exgrid"><div class="ec1 exin"><span class="exsub">出場價</span>'+
+        '<input type="number" class="ein" id="'+k+'-ex-p-'+i+'" value="'+r[0]+'" step="'+E.step+'"></div>'+
+        '<div class="ec2 exin"><span class="exsub">出場股數</span>'+
+        '<input type="number" class="ein" id="'+k+'-ex-q-'+i+'" value="'+r[1]+'" step="'+(k==='ly'?1:5)+'">'+
+        '<button class="allbtn" onclick="fillAll(\''+k+'\','+i+')">全</button></div></div>'+
+      '<input type="range" id="'+k+'-ex-r-'+i+'" min="'+E.rng[0]+'" max="'+E.rng[1]+'" value="'+r[0]+'" step="'+E.step+'">';
+    box.appendChild(d);});
+  E.rows.forEach((r,i)=>{const p=document.getElementById(k+'-ex-p-'+i),rg=document.getElementById(k+'-ex-r-'+i),q=document.getElementById(k+'-ex-q-'+i);
+    p.addEventListener('input',()=>{rg.value=p.value;if(uni(k))syncExit(k,p.value);calcExit(k);});
+    rg.addEventListener('input',()=>{p.value=rg.value;if(uni(k))syncExit(k,rg.value);calcExit(k);});
+    q.addEventListener('input',()=>calcExit(k));});}
+function uni(k){return document.getElementById(k+'-uni').checked;}
+function syncExit(k,v){EXIT[k].rows.forEach((r,i)=>{document.getElementById(k+'-ex-p-'+i).value=v;document.getElementById(k+'-ex-r-'+i).value=v;});}
+function fillAll(k,i){document.getElementById(k+'-ex-q-'+i).value=POS[k].sh;calcExit(k);}
+/* 反推目標股價：由稅後損益(net)解出股價 */
+function priceForNet(p,net){const d=parseFloat(document.getElementById('disc').value)||0.5;
+  const tax=document.getElementById('aftertax').checked,r=0.001425;
+  if(!tax)return p.cost+net/p.sh;
+  return (net+p.cost*p.sh*(1+r*d))/(p.sh*(1-r*d-0.003));}
+function revCalc(k){const p=POS[k];const base=p.cost*p.sh;
+  const pct=parseFloat(document.getElementById(k+'-rpct').value);
+  const a=document.getElementById(k+'-rpctpx');
+  const mut='<span style="font-size:12px;color:var(--mut)">';
+  if(!isNaN(pct)&&p.sh>0){const net=pct/100*base;const px=priceForNet(p,net);
+    a.innerHTML=fpx(px)+' 元　'+mut+'損益 </span>'+(net>=0?'+':'')+f0(net)+' 元　'+mut+'報酬 </span>'+(pct>=0?'+':'')+pct.toFixed(2)+'%';a.style.color=col(pct);}
+  else{a.textContent='—';a.style.color='var(--mut)';}
+  const amt=parseFloat(document.getElementById(k+'-ramt').value);
+  const b=document.getElementById(k+'-ramtpx');
+  if(!isNaN(amt)&&p.sh>0){const px=priceForNet(p,amt);const pc=base>0?amt/base*100:0;
+    b.innerHTML=fpx(px)+' 元　'+mut+'損益 </span>'+(amt>=0?'+':'')+f0(amt)+' 元　'+mut+'報酬 </span>'+(pc>=0?'+':'')+pc.toFixed(2)+'%';b.style.color=col(amt);}
+  else{b.textContent='—';b.style.color='var(--mut)';}}
+function calcExit(k){const p=POS[k];let tnet=0,tq=0;
+  EXIT[k].rows.forEach((r,i)=>{const px=parseFloat(document.getElementById(k+'-ex-p-'+i).value)||0;
+    const q=parseFloat(document.getElementById(k+'-ex-q-'+i).value)||0;const el=document.getElementById(k+'-ex-pl-'+i);
+    if(px>0&&q>0){const rr=feeNet(p.cost,q,px);tnet+=rr.net;tq+=q;
+      el.textContent=(rr.net>=0?'+':'')+f0(rr.net)+' 元 ('+(rr.pct>=0?'+':'')+rr.pct.toFixed(2)+'%)';el.style.color=col(rr.net);}
+    else{el.textContent='—';el.style.color='var(--mut)';}});
+  const pc=(tq>0&&POS[k].cost>0)?tnet/(POS[k].cost*tq)*100:0;
+  const s=document.getElementById(k+'-exsum');
+  s.textContent=tq>0?(f0(tq)+' 股 ／ '+(tnet>=0?'+':'')+f0(tnet)+' 元（'+(pc>=0?'+':'')+pc.toFixed(2)+'%）'):'—';
+  s.style.color=tq>0?col(tnet):'var(--mut)';revCalc(k);}
+function readState(k){PLAN[k]=PLAN[k].map((r,i)=>[document.getElementById(k+'-nm-'+i).value,document.getElementById(k+'-cd-'+i).value,
+  parseFloat(document.getElementById(k+'-pr-'+i).value)||0,parseFloat(document.getElementById(k+'-q-'+i).value)||0]);}
+function addRow(k){readState(k);const l=PLAN[k][PLAN[k].length-1];PLAN[k].push(['加碼','自訂條件',l?l[2]:0,0]);buildRows(k);fundAll();}
+function removeRow(k){readState(k);if(PLAN[k].length>1)PLAN[k].pop();buildRows(k);fundAll();}
+function readExit(k){EXIT[k].rows=EXIT[k].rows.map((r,i)=>[parseFloat(document.getElementById(k+'-ex-p-'+i).value)||0,parseFloat(document.getElementById(k+'-ex-q-'+i).value)||0]);}
+/* 進出場情境一二三(分批進場+停利停損整組) */
+const SCEN={hh:{},ly:{}},ACT={hh:1,ly:1};
+function snap(k){return{plan:PLAN[k].map(r=>r.slice()),exit:EXIT[k].rows.map(r=>r.slice())};}
+function scen(k,n){readState(k);readExit(k);SCEN[k][ACT[k]]=snap(k);ACT[k]=n;
+  const s=SCEN[k][n];if(s){PLAN[k]=s.plan.map(r=>r.slice());EXIT[k].rows=s.exit.map(r=>r.slice());}
+  [1,2,3].forEach(i=>document.getElementById(k+'-sc'+i).classList.toggle('active',i===n));
+  buildRows(k);buildExit(k);fundAll();}
+function addExit(k){readExit(k);const l=EXIT[k].rows[EXIT[k].rows.length-1];EXIT[k].rows.push([l?l[0]:EXIT[k].rng[0],0]);buildExit(k);calcExit(k);}
+function removeExit(k){readExit(k);if(EXIT[k].rows.length>1)EXIT[k].rows.pop();buildExit(k);calcExit(k);}
+function calcFund(k){const fund=parseFloat(document.getElementById('fund').value)||0;let amt=0,sh=0,cost=0;
+  PLAN[k].forEach((r,i)=>{const pr=parseFloat(document.getElementById(k+'-pr-'+i).value)||0;
+    const q=parseFloat(document.getElementById(k+'-q-'+i).value)||0;const a=pr*q;
+    document.getElementById(k+'-be-'+i).textContent=pr>0?fpx(breakeven(pr)):'—';
+    document.getElementById(k+'-am-'+i).textContent=a>0?f0(a):'—';
+    document.getElementById(k+'-pc-'+i).textContent=(a>0&&fund>0)?(a/fund*100).toFixed(1)+' %':'—';
+    amt+=a;sh+=q;cost+=q*pr;
+    document.getElementById(k+'-ba-'+i).textContent=(q>0&&sh>0)?fpx(cost/sh)+' 元':'—';});
+  document.getElementById(k+'-sumamt').textContent=f0(amt)+' 元';
+  document.getElementById(k+'-sumpct').textContent=fund>0?(amt/fund*100).toFixed(1)+' %':'—';
+  const avg=sh>0?cost/sh:0;
+  document.getElementById(k+'-avg').textContent=sh>0?avg.toFixed(2)+' 元':'—';
+  document.getElementById(k+'-shares').textContent=f0(sh)+' 股（'+(sh/1000).toFixed(2)+' 張）';
+  if(sh>0){POS[k].sh=sh;POS[k].cost=avg;document.getElementById(k+'-hdr').textContent=f0(sh)+' 股（'+NAME[k]+'）｜均價 '+avg.toFixed(2);}
+  calcExit(k);return amt;}
+function fundAll(){const fund=parseFloat(document.getElementById('fund').value)||0;
+  const a=calcFund('hh'),b=calcFund('ly');const tot=a+b;
+  const cash=fund-tot;
+  const ph=fund>0?a/fund*100:0,pl2=fund>0?b/fund*100:0,pc=fund>0?Math.max(cash,0)/fund*100:0;
+  const pct=v=>'<span style="color:var(--mut);font-weight:600">（'+v.toFixed(1)+'%）</span>';
+  document.getElementById('al-hh').innerHTML=f0(a)+' 元 '+pct(ph);
+  document.getElementById('al-ly').innerHTML=f0(b)+' 元 '+pct(pl2);
+  const ec=document.getElementById('al-cash');ec.innerHTML=f0(cash)+' 元 '+pct(pc);ec.style.color=cash<0?'var(--red)':'';
+  document.getElementById('dn-used').textContent=(fund>0?(tot/fund*100).toFixed(1):'0')+'%';
+  const C=2*Math.PI*62;
+  const seg=(id,s,l)=>{const el=document.getElementById(id);el.style.strokeDasharray=(l/100*C)+' '+C;el.style.strokeDashoffset=(-s/100*C);};
+  seg('dn-hh',0,ph);seg('dn-ly',ph,pl2);seg('dn-cash',ph+pl2,pc);
+  upd('hh');upd('ly');}
+buildLevels('hh');buildLevels('ly');
+buildRows('hh');buildRows('ly');buildExit('hh');buildExit('ly');
+['hh','ly'].forEach(k=>{SCEN[k]={1:snap(k),2:snap(k),3:snap(k)};});
+document.getElementById('fund').addEventListener('input',fundAll);
+['hh','ly'].forEach(k=>['rpct','ramt'].forEach(t=>document.getElementById(k+'-'+t).addEventListener('input',()=>revCalc(k))));
+fundAll();
+/* 即時報價(TWSE MIS,自動每10秒;多重 CORS 代理備援) */
+const LIVEMAP={'2317':'hh','2330':'ly'};let liveFirst=true;
+function liveSyncOnce(){if(liveFirst){syncPx('hh');syncPx('ly');liveFirst=false;}}
+function lt(){return new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+const FUGLE='https://cw-region-test-dstvjnsfmh.cn-hongkong.fcapp.run/api/fugle?endpoint=quote&symbol=';
+const TWBASE='https://cw-region-test-dstvjnsfmh.cn-hongkong.fcapp.run/api/twse?symbol=';
+async function fetchLive(){
+  const st=document.getElementById('livestatus');
+  // 主來源:富果 lastPrice(真實成交價,含小數)
+  try{let ok=0,ts='';
+    for(const pr of [['hh','2317.TW'],['ly','2330.TW']]){
+      const c=new AbortController();const to=setTimeout(()=>c.abort(),8000);
+      const r=await fetch(FUGLE+pr[1],{signal:c.signal});clearTimeout(to);const j=await r.json();
+      const p=(j&&(j.lastPrice!=null?j.lastPrice:j.closePrice));
+      if(p!=null){POS[pr[0]].close=p;document.getElementById(pr[0]+'-px').textContent=fpx(p);upd(pr[0]);ok++;
+        if(j.lastUpdated)ts=new Date(j.lastUpdated/1000).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}}
+    if(ok){liveSyncOnce();st.textContent='🟢 現價 '+(ts||lt())+'（富果即時）';st.style.color='var(--mut)';return;}
+  }catch(e){}
+  // 備援:CW 後端 /api/twse(整數價)
+  try{let ok=0,ts='';
+    for(const pr of [['hh','2317'],['ly','2330']]){
+      const c=new AbortController();const to=setTimeout(()=>c.abort(),7000);
+      const r=await fetch(TWBASE+pr[1],{signal:c.signal});clearTimeout(to);const j=await r.json();
+      if(j&&j.price!=null){POS[pr[0]].close=j.price;document.getElementById(pr[0]+'-px').textContent=fpx(j.price);upd(pr[0]);ok++;ts=j.time_str||'';}}
+    if(ok){liveSyncOnce();st.textContent='🟢 現價 '+(ts||lt())+'（TWSE）';st.style.color='var(--mut)';return;}
+  }catch(e){}
+  const api='https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_2317.tw|tse_2330.tw&json=1&delay=0&_='+Date.now();
+  const proxies=['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy/?quest=','https://thingproxy.freeboard.io/fetch/'];
+  for(const px of proxies){
+    try{
+      const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),6000);
+      const res=await fetch(px+encodeURIComponent(api),{signal:ctrl.signal});clearTimeout(to);
+      const j=await res.json();
+      if(!j.msgArray||!j.msgArray.length)throw 0;
+      let ok=0;
+      j.msgArray.forEach(m=>{const k=LIVEMAP[m.c];if(!k)return;
+        let p=parseFloat(m.z);if(isNaN(p)||m.z==='-')p=parseFloat(m.b)||parseFloat(m.o)||parseFloat(m.y);
+        if(!isNaN(p)){POS[k].close=p;document.getElementById(k+'-px').textContent=fpx(p);upd(k);ok++;}});
+      if(ok)liveSyncOnce();st.textContent=ok?('🟢 現價更新 '+lt()+'（TWSE）'):('⚪ 休市/無成交 '+lt());st.style.color='var(--mut)';return;
+    }catch(e){}
+  }
+  // 備援:Yahoo Finance chart
+  try{let ok=0;
+    for(const pair of [['hh','2317.TW'],['ly','2330.TW']]){
+      const k=pair[0],yurl='https://query1.finance.yahoo.com/v8/finance/chart/'+pair[1]+'?interval=1m&range=1d';
+      for(const px of proxies){
+        try{const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),6000);
+          const res=await fetch(px+encodeURIComponent(yurl),{signal:ctrl.signal});clearTimeout(to);
+          const j=await res.json();const p=j&&j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].meta&&j.chart.result[0].meta.regularMarketPrice;
+          if(p){POS[k].close=p;document.getElementById(k+'-px').textContent=fpx(p);upd(k);ok++;break;}
+        }catch(e){}
+      }
+    }
+    if(ok){liveSyncOnce();st.textContent='🟡 現價更新 '+lt()+'（Yahoo）';st.style.color='var(--mut)';return;}
+  }catch(e){}
+  st.textContent='🔴 即時源忙線，暫用收盤（'+lt()+'）';st.style.color='var(--red)';
+}
+fetchLive();setInterval(fetchLive,10000);
+/* 主題 */
+function toggleTheme(){const l=document.body.classList.toggle('light');
+  document.getElementById('themebtn').textContent=l?'🌙 深色':'☀️ 淺色';
+  try{localStorage.setItem('dashTheme',l?'light':'dark');}catch(e){}}
+try{if(localStorage.getItem('dashTheme')==='light'){document.body.classList.add('light');
+  document.getElementById('themebtn').textContent='🌙 深色';}}catch(e){}
+</script>
+</body>
+</html>
