@@ -14,9 +14,9 @@ STOCKS = {"hh": "2317", "ly": "2330"}   # 鴻海 / 台積電
 UA = {"User-Agent": "Mozilla/5.0 (compatible; dashboard-bot/1.0)"}
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 
-def get_json(url, retries=4):
+def get_json(url, retries=5):
     for i in range(retries):
-        time.sleep(2.5)                       # 證交所限流，每次請求前等待
+        time.sleep(3.0)                       # 證交所限流，每次請求前等待
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=25) as r:
@@ -74,6 +74,23 @@ def san_guan(high, low):
 
 def ma(vals, n):
     return round(sum(vals[-n:]) / n, 2) if len(vals) >= n else None
+
+def _span(d1, d2):
+    a = datetime.date(int(d1[:4]), int(d1[4:6]), int(d1[6:]))
+    b = datetime.date(int(d2[:4]), int(d2[4:6]), int(d2[6:]))
+    return (b - a).days
+
+def ma_safe(rows, n, max_span):
+    """rows=[(addate,h,l,c)...]；最近 n 筆若日期跨度過大(代表抓漏某月有缺口)→回 None，不算錯誤均線。"""
+    if len(rows) < n:
+        print("    MA%d: 資料不足(%d天)→⚪" % (n, len(rows)))
+        return None
+    win = rows[-n:]
+    sp = _span(win[0][0], win[-1][0])
+    if sp > max_span:
+        print("    MA%d: 近%d筆跨度%d天>上限%d(疑似缺口)→⚪" % (n, n, sp, max_span))
+        return None
+    return round(sum(r[3] for r in win) / n, 2)
 
 # ---- 三大法人 T86 ----
 def idx_of(fields, *keys):
@@ -152,8 +169,8 @@ def main():
         up, mid, dn = san_guan(last[1], last[2])
         per[k] = {"close": last[3], "high": last[1], "low": last[2],
                   "up": up, "mid": mid, "dn": dn,
-                  "ma20": ma([r[3] for r in rows], 20),
-                  "ma60": ma([r[3] for r in rows], 60)}
+                  "ma20": ma_safe(rows, 20, 45),
+                  "ma60": ma_safe(rows, 60, 115)}
         dates5 = [r[0] for r in rows[-5:]]
         if len(dates5) > len(trade_dates):
             trade_dates = dates5
